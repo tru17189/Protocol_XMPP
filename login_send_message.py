@@ -17,11 +17,22 @@ class SendMsgBot(sleekxmpp.ClientXMPP):
     def __init__(self, jid, password, recipient, message):
         sleekxmpp.ClientXMPP.__init__(self, jid, password)
 
+        # variable la cual recibe el usuario destino del mensaje.
         self.recipient = recipient
+        # variable la cual sirve para recupilar el mensaje que se enviara. 
         self.msg = message
 
+        # El evento session_start inicializa el bot para 
+        # establecer coneccion con el servidor y con el XML
+        # stream para confirmar si esta listo para ser usado.
         self.add_event_handler("session_start", self.start, threaded=True)
 
+    """
+    Se inicia el evento de mandar mensaje y se construye
+    el objeto, el cual recibe los parametros necesarios para 
+    poder mandar el mensaje como la presencia del usuario origen
+    y el usuario destino en donde acabara el mensaje. 
+    """
     def start(self, event):
         self.send_presence()
         self.get_roster()
@@ -33,6 +44,9 @@ class SendMsgBot(sleekxmpp.ClientXMPP):
 
         self.disconnect(wait=True)
 
+
+# Clase que sirve para imprimir a los usuarios amigos del usuario 
+# que este usando el programa. 
 class ContactBot(sleekxmpp.ClientXMPP):
     def __init__(self, jid, password):
         sleekxmpp.ClientXMPP.__init__(self, jid, password)
@@ -47,6 +61,8 @@ class ContactBot(sleekxmpp.ClientXMPP):
 
         self.disconnect(wait=True)
 
+# Clase que sirve para borrar un usuario de la lista de amigos
+# del usuario que este usando el programa. 
 class RemoveUserBot(sleekxmpp.ClientXMPP):
     def __init__(self, jid, password, next_user):
         sleekxmpp.ClientXMPP.__init__(self, jid, password)
@@ -57,10 +73,13 @@ class RemoveUserBot(sleekxmpp.ClientXMPP):
     def start(self, event):
         self.send_presence()
         self.get_roster()
+        # Funcion provista por el sleekxmpp.ClientXMPP que sirve para 
+        # cambiar el status de un usuario amigo a "removed"
         self.del_roster_item(self.next_user)
 
         self.disconnect(wait=True)
 
+# Clase que sive para buscar el status de un usuario en especifico.
 class StatusBot(sleekxmpp.ClientXMPP):
     def __init__(self, jid, password, next_user):
         sleekxmpp.ClientXMPP.__init__(self, jid, password)
@@ -71,10 +90,13 @@ class StatusBot(sleekxmpp.ClientXMPP):
         self.send_presence()
         self.get_roster()
         self.client_roster
+        # Aqui se busca dentro el cliente roster el status del usuario ingresado
         print("Este es: ", self.client_roster.presence(self.next_user))
         self.disconnect(wait=True)
 
-
+# A partir de este punto hasta el final es codigo que no se usa en el 
+# programa principal que se evaluara en el proyecto, este codigo solo me sirve 
+# por si quisiese probar especificamente las funcionalidades de este script.
 if __name__ == '__main__':
     optp = OptionParser()
 
