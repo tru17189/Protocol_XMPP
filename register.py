@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 import sys
 import logging
 import getpass
@@ -7,18 +5,14 @@ from optparse import OptionParser
 
 import sleekxmpp
 from sleekxmpp.exceptions import IqError, IqTimeout
-
-# Python versions before 3.0 do not use UTF-8 encoding
-# by default. To ensure that Unicode is handled properly
-# throughout SleekXMPP, we will set the default encoding
-# ourselves to UTF-8.
 """
 if sys.version_info < (3, 0):
     reload(sys)
     sys.setdefaultencoding('utf8')
 else:
     """
-raw_input = input
+
+#raw_input = input
 
 
 class RegisterBot(sleekxmpp.ClientXMPP):
@@ -133,7 +127,8 @@ if __name__ == '__main__':
                         format='%(levelname)-8s %(message)s')
 
     if opts.jid is None:
-        opts.jid = raw_input("Username: ")
+        #opts.jid = raw_input("Username: ")
+        print("Este sera tu usuario -> ", opts.jid)
     if opts.password is None:
         opts.password = getpass.getpass("Password: ")
 
@@ -167,4 +162,4 @@ if __name__ == '__main__':
     else:
         print("Unable to connect.")
 
-con = RegisterBot("tru@redes2020.xyz", "alex")
+#con = RegisterBot("tru@redes2020.xyz", "alex")
