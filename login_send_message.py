@@ -61,6 +61,18 @@ class ContactBot(sleekxmpp.ClientXMPP):
 
         self.disconnect(wait=True)
 
+class ReturnContactBot(sleekxmpp.ClientXMPP):
+    def __init__(self, jid, password):
+        sleekxmpp.ClientXMPP.__init__(self, jid, password)
+
+        self.add_event_handler("session_start", self.start, threaded=True)
+
+    def start(self, event):
+        self.send_presence()
+        self.get_roster()
+        self.client_roster
+        return self.client_roster.groups()
+
 # Clase que sirve para borrar un usuario de la lista de amigos
 # del usuario que este usando el programa. 
 class RemoveUserBot(sleekxmpp.ClientXMPP):

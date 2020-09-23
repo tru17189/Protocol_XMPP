@@ -18,8 +18,11 @@ DESCRIPTIONS:
   -room.py (This script has the functionality of creating a new room or join a new room, also has a presence message).
   
   HOW TO RUN:
-  
-    For run this project just runs the main.py file of the next way:
-    python main.py
+    Follow the commands below (just run the first command in case something goes wrong, because it is an error that does not show up on all computers):
+
+    1. pip uninstall pyasn1 peas-modules sleekxmpp
+    2. pip install pyasn1==0.3.6 pyasn1-modules==0.1.5 
+    3. pip install sleekxmpp==1.3.3
+    4. python main.py
     
 This project was built in Python 3.7.3
