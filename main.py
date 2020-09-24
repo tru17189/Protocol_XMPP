@@ -54,6 +54,16 @@ class ClientObject(sleekxmpp.ClientXMPP):
         self.get_roster()
         #self.disconnect(wait=True)
 
+    '''
+    La siguiente son una serie de definiciones que se usan para 
+    cumplir las metas del proyecto, la primera se usa para recibir
+    mensajes de otros usuarios, la segunda y tercera son notificaciones
+    de cuando tus contactos se conectan o desconectan, la cuarta es 
+    para mandar solicitud de amistad, la quinta para mandar mensaje de
+    prensencia y la sexta saca toda la lista de los usuarios en el
+    servidor. 
+    '''
+
     def ReceiveMessage(self, message):
         print(message['from'].user, message['body'])
     
@@ -72,11 +82,15 @@ class ClientObject(sleekxmpp.ClientXMPP):
         message['type'] = 'chat'
         message['body'] = message
         message.append(ET.fromstring("<active xmlns='http://jabber.org/protocol/chatstates'/>"))
-        y = input("¿Quieres cambiar el mensaje de presencia?[y/n] ")
         lista = self.client_roster.groups()
         print(lista)
+        forWho = []
         for i in lista:
-            message['to'] = i
+            for jid in lista[i]:
+                forWho.append(jid)
+        for i in forWho:
+            print("i: ", i)
+            message['to'] = str(i)
             try:
                 message.send()
             except IqError as e:
@@ -84,7 +98,34 @@ class ClientObject(sleekxmpp.ClientXMPP):
             except IqTimeout:
                 raise Exception("El servidor no esta respondiendo")
                 
-                
+    def ServerList(self):
+        resp = self.Iq()
+        resp['type'] = 'set'
+        resp['to'] = 'search.redes2020.xyz'
+        resp['id'] = 'unreg1'
+        query = "<query xmlns='jabber:iq:search'> \
+                    <x xmlns='jabber:x:data' type='submit'> \
+                        <field type='hidden' var='FORM_TYPE'> \
+                            <value>jabber:iq:search</value> \
+                        </field> \
+                        <field var='Username'> \
+                            <value>1</value> \
+                        </field> \
+                        <field var='search'> \
+                            <value>*</value> \
+                        </field> \
+                    </x> \
+                </query>"
+        resp.append(ET.fromstring(query))
+        try:
+            lista = resp.send()
+            for i in lista.findall('.//{jabber:x:data}value'):
+                print("aqui")
+                print(i.text)
+        except IqError as e:
+            self.disconnect()
+        except IqTimeout:
+            self.disconnect()
 
 # Aqui iniciamos el menu principal el cual te da dos opciones 
 # registrarse o inicar sesion, sino se inicia sesion no se tiene 
@@ -92,7 +133,7 @@ class ClientObject(sleekxmpp.ClientXMPP):
 # la lista de amigos. 
 while True:
     print("1. Registrar una nueva cuenta en el servidor.")
-    print("2. Iniciar Sesión (Hasta hacer esto no podras realizar\n algunas acciones como mandar mensajes)")
+    print("2. Iniciar Sesión (Hasta hacer esto no podras realizar algunas acciones como mandar mensajes)")
     number = int(input("Escribe el numero de la opcion que deseas: "))
     if number == 1:
         raw_input = input
@@ -165,7 +206,13 @@ while True:
 
             logging.basicConfig(level=opts.loglevel,
                                 format='%(levelname)-8s %(message)s')
-
+            '''
+            Aqui se pide el login para que el resto de las funciones que ya se 
+            llaman sea personalizado para el usuario que ingreso, primero se 
+            imprime el menu de opciones, y para que ingreses el numero que 
+            desies y asi llamar las funciones que pediste, en algunas se llaman
+            clases de otros scripts y en otras definiciones de este mismo scripts 
+            '''
             if opts.jid is None:
                 opts.jid = raw_input("Username: ")
             if opts.password is None:
@@ -179,11 +226,13 @@ while True:
                 print("5. Crear una sala / Unirse a una sala ya existente. (Editar mensaje de presencia de grupos tambien)")
                 print("6. Mandar solicitud de amistad")
                 print("7. Mandar mensaje de presencia (Editar tambien)")
-                print("8. Cerrar Sesion.")
+                print("8. Mostrar a todos los usuarios del servidor.")
+                print("9. Cerrar Sesion.")
+                print("Espere unos segundos porfavor...")
                 ClientObject(opts.jid, opts.password)
-                number = int(input("Escribe el numero de la opcion que deseas: \n\n"))
+                number = int(input("\n\n Escribe el numero de la opcion que deseas: \n\n"))
                 if number == 1:
-                    opts.to = raw_input("\nPara: ")
+                    opts.to = raw_input("\n\nPara: ")
                     opts.message = raw_input("Mensaje: ")
 
                     xmpp = login_send_message.SendMsgBot(opts.jid, opts.password, opts.to, opts.message)
@@ -196,7 +245,7 @@ while True:
                     else:
                         print("Unable to connect.")
                 elif number == 2:
-                    print("\nLa siguiente es tu lista de amigos: ")
+                    print("\n\nLa siguiente es tu lista de amigos: \n\n")
                     xmpp = login_send_message.ContactBot(opts.jid, opts.password)
                     xmpp.register_plugin('xep_0030') 
                     xmpp.register_plugin('xep_0199') 
@@ -206,9 +255,9 @@ while True:
                     else:
                         pass
                 elif number == 3:
-                    confirmation = input("\n¿Estas seguro que quieres borrar un contacto? [y/n]")
+                    confirmation = input("\n\n¿Estas seguro que quieres borrar un contacto? [y/n]\n\n")
                     if confirmation == "y":
-                        user = input("¿A quien deseas eliminar?: ")
+                        user = input("\n\n¿A quien deseas eliminar?: \n\n")
                         xmpp = login_send_message.RemoveUserBot(opts.jid, opts.password, user)
                         xmpp.register_plugin('xep_0030') 
                         xmpp.register_plugin('xep_0199') 
@@ -221,7 +270,7 @@ while True:
                     else:
                         pass
                 elif number == 4:
-                    user = input("\nEscribe el nombre del usuario que deseas saber su status: ")
+                    user = input("\n\nEscribe el nombre del usuario que deseas saber su status: \n\n")
                     xmpp = login_send_message.StatusBot(opts.jid, opts.password, user)
                     xmpp.register_plugin('xep_0030') 
                     xmpp.register_plugin('xep_0199') 
@@ -232,11 +281,11 @@ while True:
                     else:
                         print("Unable to connect.")
                 elif number == 5:
-                    print("\nA continuacion se te presentara dos opciones: ")
+                    print("\n\nA continuacion se te presentara dos opciones: ")
                     print("-Para unirse a una sala ya existente solo escribe el nombre exacto de la sala que deseas entrar.")
                     print("-Para crear una nueva sala escribir el nombre de una sala no existente.")
-                    opts.roomr = raw_input("\nEscriba el nombre de la sala: ")
-                    opts.roomnickname = raw_input("Escribe el apodo de la sala: ")
+                    opts.roomr = raw_input("\n\nEscriba el nombre de la sala: \n\n")
+                    opts.roomnickname = raw_input("\n\nEscribe el apodo de la sala: \n\n")
                     xmpp = room.MUCBot(opts.jid, opts.password, opts.roomr, opts.roomnickname)
                     xmpp.register_plugin('xep_0030') # Service Discovery
                     xmpp.register_plugin('xep_0045') # Multi-User Chat
@@ -251,21 +300,17 @@ while True:
                     ClientObject(opts.jid, opts.password).addUser()
                 elif number == 7:
                     mensaje = "respeto tu privacidad tocando la puerta pero reafirmo mi autoridad entrando de todos modos, tru"
+                    y = input("\n\n¿Quieres cambiar el mensaje de presencia?[y/n]\n\n")
+                    if (y == 'y'):
+                        mensaje = input("\n\nEscribe el nuevo mensaje de presencia: \n\n")
+                    else:
+                        pass
                     ClientObject(opts.jid, opts.password).BuildNotification(mensaje)
                 elif number == 8:
-                    restart = input("\n¿Quieres cerrar sesión? [y/n] ")
+                    ClientObject(opts.jid, opts.password).ServerList()
+                elif number == 9:
+                    restart = input("\n\n¿Quieres cerrar sesión? [y/n] \n\n")
                     if restart == "y":
-                        #xmpp.disconnect(wait=True)
                         os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
                     else:
                         pass
-
-                    #paraBorrar@redes2020.xyz
-                    #yo
-                    '''
-                    y = input("¿Quieres cambiar el mensaje de presencia?[y/n] ")
-                    if (y == 'y'):
-                        mensaje = input("Escribe el nuevo mensaje de presencia: ")
-                    else:
-                        pass
-                    '''
